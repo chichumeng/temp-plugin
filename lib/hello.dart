@@ -10,6 +10,13 @@ class Hello {
   static const MethodChannel _channel =
       const MethodChannel('hello');
 
+  static const EventChannel eventChannel =
+      EventChannel('eventhello');
+
+  static void listen(Function _onEvent,Function _onError){
+    eventChannel.receiveBroadcastStream().listen(_onEvent, onError: _onError);
+  }
+
   static Future<String> registerApp(String appId) async {
     String result = await _channel.invokeMethod('registerApp',{"appId":appId});
     return result;

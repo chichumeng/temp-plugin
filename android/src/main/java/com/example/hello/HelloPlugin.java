@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.os.BatteryManager;
 import android.widget.Toast;
 
 import com.tencent.mm.opensdk.constants.ConstantsAPI;
@@ -33,6 +34,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
 
+import io.flutter.plugin.common.EventChannel;
 import io.flutter.plugin.common.MethodCall;
 import io.flutter.plugin.common.MethodChannel;
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler;
@@ -40,13 +42,17 @@ import io.flutter.plugin.common.MethodChannel.Result;
 import io.flutter.plugin.common.PluginRegistry.Registrar;
 
 /** HelloPlugin */
-public class HelloPlugin implements MethodCallHandler {
+public class HelloPlugin implements MethodCallHandler, EventChannel.StreamHandler {
   private static Context context;
   /** Plugin registration. */
   public static void registerWith(Registrar registrar) {
     context = registrar.activeContext();
     final MethodChannel channel = new MethodChannel(registrar.messenger(), "hello");
     channel.setMethodCallHandler(new HelloPlugin());
+
+    final EventChannel event = new EventChannel(registrar.messenger(), "eventhello");
+    event.setStreamHandler(new HelloPlugin());
+
   }
 
   private Result regResult;
@@ -472,4 +478,56 @@ public class HelloPlugin implements MethodCallHandler {
       return null;
     }
   }
+
+  private BroadcastReceiver chargingStateChangeReceiver;
+  private BroadcastReceiver authCodeSateChangeReceiver;
+  @Override
+  public void onListen(Object o, EventChannel.EventSink events) {
+
+    //begin 注册电池情况广播
+    chargingStateChangeReceiver = createChargingStateChangeReceiver(events);
+    context.registerReceiver(chargingStateChangeReceiver, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
+    //end
+
+    //注册一个AUTH code 广播
+    authCodeSateChangeReceiver = createAuthCodeSateChangeReceiver(events);
+    context.registerReceiver(authCodeSateChangeReceiver,new IntentFilter("CCM_WECHAT_ACTION"));
+  }
+
+  @Override
+  public void onCancel(Object o) {
+    //
+    context.unregisterReceiver(chargingStateChangeReceiver);
+    chargingStateChangeReceiver = null;
+
+    context.unregisterReceiver(authCodeSateChangeReceiver);
+    authCodeSateChangeReceiver = null;
+  }
+
+  private BroadcastReceiver createAuthCodeSateChangeReceiver(final EventChannel.EventSink events) {
+    return new BroadcastReceiver() {
+      @Override
+      public void onReceive(Context context, Intent intent) {
+        events.success(intent.getStringExtra("code"));
+      }
+    };
+  }
+
+  private BroadcastReceiver createChargingStateChangeReceiver(final EventChannel.EventSink events) {
+    return new BroadcastReceiver() {
+      @Override
+      public void onReceive(Context context, Intent intent) {
+        int status = intent.getIntExtra(BatteryManager.EXTRA_STATUS, -1);
+
+        if (status == BatteryManager.BATTERY_STATUS_UNKNOWN) {
+          //events.error("UNAVAILABLE", "Charging status unavailable", null);
+        } else {
+          boolean isCharging = status == BatteryManager.BATTERY_STATUS_CHARGING ||
+                  status == BatteryManager.BATTERY_STATUS_FULL;
+          //events.success(isCharging ? "charging" : "discharging");
+        }
+      }
+    };
+  }
+
 }

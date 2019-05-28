@@ -12,10 +12,21 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
+  String eventStr = "无";
   @override
   void initState() {
     super.initState();
     initPlatformState();
+    Hello.listen(_onEvent, _onError);
+  }
+
+  void _onEvent(Object event) {
+    setState(() {
+      eventStr = event;
+    });
+  }
+
+  void _onError(Object error) {
   }
 
   // Platform messages are asynchronous, so we initialize in an async method.
@@ -49,7 +60,7 @@ class _MyAppState extends State<MyApp> {
               FlatButton(child: Text("shareText"),onPressed: () async {
                 await Hello.shareText("share text 分享的内容",scene:Hello.WXSceneTimeline);
               },),
-              
+              Text("$eventStr"),
             ],
           ),
         ),

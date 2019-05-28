@@ -12,6 +12,7 @@ import com.tencent.mm.opensdk.modelbiz.WXLaunchMiniProgram;
 import com.tencent.mm.opensdk.modelbiz.WXOpenBusinessView;
 import com.tencent.mm.opensdk.modelbiz.WXOpenBusinessWebview;
 import com.tencent.mm.opensdk.modelmsg.SendAuth;
+import com.tencent.mm.opensdk.modelpay.PayResp;
 import com.tencent.mm.opensdk.openapi.IWXAPI;
 import com.tencent.mm.opensdk.openapi.IWXAPIEventHandler;
 import com.tencent.mm.opensdk.openapi.WXAPIFactory;
@@ -71,30 +72,35 @@ public class WXEntryActivity extends Activity implements IWXAPIEventHandler {
                 break;
         }
 
-        if (resp.getType() == ConstantsAPI.COMMAND_SUBSCRIBE_MESSAGE) { //一次性订阅信息
-            SubscribeMessage.Resp subscribeMsgResp = (SubscribeMessage.Resp) resp;
+        switch (resp.getType()){
+            case ConstantsAPI.COMMAND_SUBSCRIBE_MESSAGE: //一次性订阅信息
+                SubscribeMessage.Resp subscribeMsgResp = (SubscribeMessage.Resp) resp;
+                break;
+            case ConstantsAPI.COMMAND_LAUNCH_WX_MINIPROGRAM://小程序
+                WXLaunchMiniProgram.Resp launchMiniProgramResp = (WXLaunchMiniProgram.Resp) resp;
+                break;
+            case ConstantsAPI.COMMAND_OPEN_BUSINESS_VIEW://签约
+                WXOpenBusinessView.Resp openBusinessView = (WXOpenBusinessView.Resp) resp;
+                break;
+            case ConstantsAPI.COMMAND_OPEN_BUSINESS_WEBVIEW://签约
+                WXOpenBusinessWebview.Resp response = (WXOpenBusinessWebview.Resp) resp;
+                break;
+            case ConstantsAPI.COMMAND_SENDAUTH: //认证
+                SendAuth.Resp authResp = (SendAuth.Resp)resp;
+                final String code = authResp.code;
+                //CCM_WECHAT_ACTION
+                Intent intent = new Intent("CCM_WECHAT_ACTION");
+                intent.putExtra("code", code);
+                sendBroadcast(intent);
+                break;
+            case ConstantsAPI.COMMAND_PAY_BY_WX://微信支付
+                //0成功,-1错误,-2用户取消
+                //resp.errCode
+                break;
+            default:
+                break;
         }
 
-        if (resp.getType() == ConstantsAPI.COMMAND_LAUNCH_WX_MINIPROGRAM) { //小程序
-            WXLaunchMiniProgram.Resp launchMiniProgramResp = (WXLaunchMiniProgram.Resp) resp;
-        }
-
-        if (resp.getType() == ConstantsAPI.COMMAND_OPEN_BUSINESS_VIEW) { //签约
-            WXOpenBusinessView.Resp launchMiniProgramResp = (WXOpenBusinessView.Resp) resp;
-        }
-
-        if (resp.getType() == ConstantsAPI.COMMAND_OPEN_BUSINESS_WEBVIEW) { //签约
-            WXOpenBusinessWebview.Resp response = (WXOpenBusinessWebview.Resp) resp;
-        }
-
-        if (resp.getType() == ConstantsAPI.COMMAND_SENDAUTH) { //认证
-            SendAuth.Resp authResp = (SendAuth.Resp)resp;
-            final String code = authResp.code;
-            //CCM_WECHAT_ACTION
-            Intent intent = new Intent("CCM_WECHAT_ACTION");
-            intent.putExtra("code", code);
-            sendBroadcast(intent);
-        }
         finish();
     }
 }

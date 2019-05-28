@@ -258,25 +258,35 @@ public class HelloPlugin implements MethodCallHandler, EventChannel.StreamHandle
     final String nonceStr = call.argument("nonceStr");
     final String timeStamp = call.argument("timeStamp");
     final String sign = call.argument("sign");
-    final String packageValue = call.argument("package");
-    PayReq payReq = new PayReq();
-    payReq.partnerId = partnerId;
-    payReq.prepayId = prepayId;
-    payReq.nonceStr = nonceStr;
-    payReq.timeStamp = timeStamp;
-    payReq.sign = sign;
-    payReq.packageValue = packageValue;
-    payReq.appId = appId;
-    api.sendReq(payReq);
+    final String packageValue = call.argument("packageValue");
+    new Thread(){
+      public void run(){
+        PayReq payReq = new PayReq();
+        payReq.partnerId = partnerId;
+        payReq.prepayId = prepayId;
+        payReq.nonceStr = nonceStr;
+        payReq.timeStamp = timeStamp;
+        payReq.sign = sign;
+        payReq.packageValue = packageValue;
+        payReq.appId = appId;
+        api.sendReq(payReq);
+      }
+    }.start();
+
   }
 
   private void login(MethodCall call, Result result){
     final String scope = call.argument("scope");
     final String state = call.argument("state");
-    SendAuth.Req sendReq = new SendAuth.Req();
-    sendReq.scope = scope;
-    sendReq.state = state;
-    api.sendReq(sendReq);
+    new Thread(){
+      public void run(){
+        SendAuth.Req sendReq = new SendAuth.Req();
+        sendReq.scope = scope;
+        sendReq.state = state;
+        api.sendReq(sendReq);
+      }
+    }.start();
+
   }
 
   private void registerApp(MethodCall call, Result result){
@@ -285,7 +295,7 @@ public class HelloPlugin implements MethodCallHandler, EventChannel.StreamHandle
     api = WXAPIFactory.createWXAPI(context, appId, true);
 
     // 将应用的appId注册到微信
-    //api.registerApp(APP_ID);
+    api.registerApp(appId);
 
     //建议动态监听微信启动广播进行注册到微信
     context.registerReceiver(new BroadcastReceiver() {

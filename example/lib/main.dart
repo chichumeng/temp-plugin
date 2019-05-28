@@ -61,6 +61,18 @@ class _MyAppState extends State<MyApp> {
                 await Hello.shareText("share text 分享的内容",scene:Hello.WXSceneTimeline);
               },),
               Text("$eventStr"),
+              FlatButton(child:Text("pay"),
+                onPressed: () async{
+                  await Hello.pay(
+                    partnerId: "1400574002",
+                    prepayId: "wx281627019215342a016be1bd9810434800",
+                    nonceStr: "5cecf0d5a6da7",
+                    timeStamp: "1559032021",
+                    sign: "EB3FF2DA4CB287D28E2528763952FE04",
+                    packageValue: "Sign=WXPay"
+                  );
+                },
+              ),
             ],
           ),
         ),

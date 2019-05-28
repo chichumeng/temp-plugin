@@ -34,4 +34,15 @@ class Hello {
   static Future<void> login(String state) async{
     await _channel.invokeMethod("login",{"scope":"snsapi_userinfo","state":state ?? ""});
   }
+
+  static Future<void> pay({String partnerId,String prepayId,String nonceStr,String timeStamp,String sign,String packageValue}) async{
+    await _channel.invokeMethod("pay",{
+                    "partnerId": partnerId,
+                    "prepayId": prepayId,
+                    "nonceStr": nonceStr,
+                    "timeStamp": timeStamp,
+                    "sign": sign,
+                    "packageValue": packageValue
+    });
+  }
 }
